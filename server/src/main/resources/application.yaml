@@ -1,0 +1,9 @@
+ktor:
+  application:
+    modules:
+      - com.cody.ApplicationKt.module
+    datasource:
+      url: "jdbc:h2:file:../persistence/db"
+      driverClassName: "org.h2.Driver"
+  deployment:
+    port: 8080
