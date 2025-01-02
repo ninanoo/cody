@@ -1,0 +1,832 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+19:02:00 CYG root 0 0 ( D:\projects\musinsa ) ~/musinsa
+$ gradle -v
+
+------------------------------------------------------------
+Gradle 8.12
+------------------------------------------------------------
+
+Build time:    2024-12-20 15:46:53 UTC
+Revision:      a3cacb207fec727859be9354c1937da2e59004c1
+
+Kotlin:        2.0.21
+Groovy:        3.0.22
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  21.0.5 (Oracle Corporation 21.0.5+9-LTS-239)
+Daemon JVM:    D:\tool\java\jdk-21.0.5 (no JDK specified, using current Java home)
+OS:            Windows 11 10.0 amd64
+
+
+
+=>
+
+베이스 자바 버전 기준으로 , 전부 상위 호환 맞춰주면 되는 ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+코틀린
+
+kt
+
+kotlin  >>>
+
+
+안드로이드 , 쪽에서 쓰다가 , 이젠 백단 자바 대체해가는거같긴한데 , 그 많은 레거시 자바 코드들을 어찌
+    ->
+    호환 된다해도 몇십년 수십만 라인 레거시 자바 코드들이 , 예외없이 , 넘어가질수있으까
+    ->
+    그래서 , 스타트업쪽에서 쓰기시작한듯
+    ->
+    스타트업이 쓰기엔 자바 스택 생산성이 떨어지고 , 그래도 국내는 무조건 자바 가주는게 좋고
+    ->
+    그러다보니 , 대안으로 코틀린
+
+
+
+
+
+
+.kt
+.kts
+
+build.gradle.kts  ->  Kotlin Gradle Plugin
+
+
+
+
+kotlin-notebook is a Jupyter Docker Stack image with the Kotlin kernel for Jupyter/IPython.
+
+
+
+
+
+
+
+
+
+
+
+Ktor  >>>
+
+
+코틀린 버전 , 스프링 대체 ?
+    ->
+    안드로이드 코틀린이고 , 안드로이드 백단 API서버도 , 스프링말고 Ktor 쓰면서 코틀린으로 가면 , 백/프런트 통으로 코틀린가네
+    ->
+    언어는 중요하지 않다하나 , 뭐가안중요해 , 언어 이거저거 다 카바할려면 얼마나 빡시고 귀찮고 문제 많이 생기는데
+
+
+Intellij 에서 기본 지원  ( vscode 는 아직 없는듯 )
+
+
+asynchronous 비동기 프로그래밍
+
+
+
+
+
+
+
+
+
+
+
+ORM  >>>
+
+
+Ktorm  ,,,  kotlin orm with sql dsl
+
+
+Exposed  ,,,  DSL + 경량 DAO
+
+
+
+
+
+
+
+
+Kotless  ,,,  Kotlin serverless framework
+
+    https://github.com/JetBrains/kotless
+
+
+
+
+
+
+
+문서  >>>
+
+
+Dokka  ,,,  API documentation engine for Kotlin
+
+    https://github.com/Kotlin/dokka
+
+
+Ktor Swagger UI
+
+    https://ktor.io/docs/server-swagger-ui.html
+
+ 
+
+
+
+
+
+
+
+
+<TODO> 자바 나 코틀린 은 , IntelliJ  써
+
+
+
+kotlin  +  ktor  +  exposed ( h2 )  +  junit ? mockk ? kotest ?
+
+
+
+
+
+
+./gradlew.bat run --watch-fs
+
+
+
+-Dgradle.user.home=./.gradle ?
+
+    export GRADLE_USER_HOME=./.gradle
+
+
+Groovy DSL: .gradle     / build.gradle     / settings.gradle
+Kotlin DSL: .gradle.kts / build.gradle.kts / settings.gradle.kts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+call.response.status(HttpStatusCode.OK)
+
+call.response.status(HttpStatusCode(418, "I`m a tea pot"))
+
+
+call.respondText("Hello, world!", ContentType.Text.Plain, HttpStatusCode.OK)
+->
+JSON 한방으로
+
+
+
+
+
+
+
+
+그냥 무식하게 일단 돌리고
+->
+프로토타이핑이더라도 제출해야되니까 , 데이터단(+캐싱단) 만 고도화
+
+=>
+
+변경은 적은 ( 실시간보단 일단위 배치성 업로드일 업무이고 ) , 조회 위주 업무
+->
+이긴한데 , ...
+
+=>
+
+일단위 배치로 CUD 한다고 고정
+->
+대규모/실시간 조회 위주 트랜잭션이라 고정
+    ->
+    쪼인거는 집계성 쿼리 없고 , 요구사항 조건들에 다 개별 인덱스 걸고 단순 셀렉트 만
+    ->
+    ?
+
+조회            ->  인덱스 남발  +  (집계 안돌려) 필요 스토어드 뷰 남발
++
+추가/변경/삭제  ->  배치 데이터
+
+=>
+
+이러면 , 사업 망하지
+->
+과제 테스트라도 , 실시간 CUD 는 되야하고
+
+=>
+
+약식으로
+
+
+
+
+
+goods 가 백만단위 대용량이라칠때 ,,,
+->
+goods_* 은 일단위 변경사항만 들고있다가 새벽 4시에 배치돌려 goods 로 플러싱되고 리셋되는
+->
+goods 와 goods_* 을 서비스운영 조회에 같이 돌리는데 , 분리 패칭 후 조합시키고
+    ->
+    논리/물리 분리/조합 방법은 상황에따라
+->
+goods 건수가 백만단위일때 , goods_* 은 (내가 무신사 운영해본건 아니지만) 하루 변경사항 해봐야 몇건이나 될까
+    ->
+    무신사 가 입정상점들 있는 플랫폼인지 , 자체 운영인지 , 안들어가봐서 난 아직 모르고
+    ->
+    뭐가됬든 , 그날그날 새 의류? 추가되고 가격 바꿔주고 재고없는거 내리고 ... 쇼핑쪽 MD업무?에서
+    ->
+    가장 많은게 가격 변경 (goods_update) 이고 , 다음이 추가겠지 ? , 내리는 경우가 가장 적지 않을까 싶은데
+        ->
+        과제는 일단위이나 , 일정 기간 히트치고 가격 들락하는 상품군 잡히고
+        ->
+        동적 주기 처리 필요하고 , 주기단위 goods_update 몰아야 하고 ( 보통 건드는 놈을 한동안 계속 건드는 -> CUD 캐싱 )
+            ->
+            예전 용팔이들 , 분단위로 십원깍기 레이싱했지
+            ->
+            당연히 DB상태/데이터패치 영향 주고  ->  특정순간 특정영역에 빠르게 반복되는 update DB 콜
+            ->
+            가끔 , 사람만이 갖는 특정 행동패턴으로 , 전산 알고리즘/자료구조 먹통되는 일 생겨
+->
+어쨌든 goods 건수대비 , 변경/삭제 id 싱크를 뭍어버려도 될 정도로 (최대/최소)집계처리시 goods_* 이 선택될확률은 0 에 근접
+    ->
+    극한 성능 필요할때 쓰는 방법
+->
+...
+
+
+
+
+
+
+
+일단위 배치처리는 그대로 가고
+->
+goods_insert/goods_update/goods_delete 각 배치때만 도는게 아니라 , 일과시간 실시간 조회도 같이 타
+->
+타는데 , 셀렉트 분리 처리
+->
+관점(비용/요구사항)에 따라 N?가지 방법
+    ->
+    방법1 - 물리 분리 :  조회용 goods   는 셀렉트 성능 최적화된     파일DB 로
+                                goods_* 은                      인메모리DB 로
+        ->
+        서버에서 (MAX|MIN)(( (MAX|MIN)(select *) (UNION|UNIONALL|INTERSECT|MINUS) (MAX|MIN)(select *) )[3]) 로 모아도 되고
+            ->
+            조합순서
+            ->
+            제일먼저 , goods_delete -> MINUS
+
+                다음 , goods_update -> id 싱크태워 목록 ... 은 실 서비스 설계할때 할 고민이고
+                                    -> 뭘 고민을 해 , 지금은 집계만 뽑으면 되는데
+
+            가장나중 , goods_insert -> UNION ALL
+            ->
+            그리고 , 단일머신 내 병렬처리 + 클러스터 분산처리 , 되야 하고 ... 도 실 설계를할때고 (지금은 무시)
+        |>
+        또는 화면에서 파일DB/인메모리DB 로 가는 데이터 패칭 분리로 프런트가 처리해도 되고
+            ->
+            (최대/최소)집계처리시 goods 건수대비 goods_* 선택확률이 0 에 근접하다 에 근거하고
+            ->
+            사업규모 커질수록 , 확률적 0 에 근접이지 0 은 아니고
+            ->
+            그래서 , goods 먼저 오면 그냥 화면뿌리고 , 쫌있다 goods_* 오면 확인해보고 , 프런트 상태관리에서 처리 ?
+                ->
+                그런데 , goods 랑 goods_* 이랑 , 뭐가 먼저 오나 ? 뭐가 먼저 와야하나 ?
+                ->
+                반대로 , 배치나 엑셀 업로드 말고
+                    ->
+                    사람이 화면에서 눈으로 대충 집계 감잡아보고 데이터(가격) 정해 업데이트 치는거면
+                    ->
+                    추가/변경 쪽이 히트칠 확률이 더 높은건가 ?
+                    ->
+                    무신사 데이터단 구조짜는 사람이 고민할 일이고 ...
+    |>
+    방법2 - 논리 분리 :  ...
+
+
+
+
+
+
+
+
+
+조회 성능 최적화 설계  ,,,  O(1+3)
+
+=>
+
+
+
+브랜드
+brand
+
+카테고리
+category
+
+
+
+goods ::  # goods_price
+
+id    <PK>   # brand_id
+name  <UK?>  # brand_name
+
+total <IDX>  # brand_total
+
+cat_1 <IDX>
+cat_2 <IDX>
+cat_3 <IDX>
+cat_4 <IDX>
+cat_5 <IDX>
+cat_6 <IDX>
+cat_7 <IDX>
+cat_8 <IDX>
+
+->
+
+추가/(마지막)변경 날자값  +  별도 변경 이력 테이블  ,,,  과제니까 그냥 넘어가
+
+
+
+goods_insert ::  # 추가 는 , 씽크 걱정 없는데? 동일 브랜드인지 확인은 ... 화면도 할거고 (안되있으면) 데이터단 뻑나고
+
+goods_update ::  # 변경 은 , 조회용 goods 테이블에도 해당 id 있고 여기도 동일 id 있고
+goods_delete ::  # 삭제 도
+
+    ->
+    변경/삭제  ,,,  실시간 처리 돌릴려면 , goods 랑 goods_* 이랑 씽크 맞춰야되
+    ->
+    지금은 집계 값뽑는거만
+
+->
+좀 무식해보여도 , 정말 대용량 분산 DB 라 치고 , 배치 처리에서도 최소 써치돌게 각자
+->
+일당 cud 도 건수 쫌 된다치면 ... cud 도 cat_* 에 다 인덱스 걸어 ?
+    ->
+    구현1은 통쿼리돌리면 의미없는데 , 구현234도 있으니까이고 , DB 엔진 뭐냐따라 다를때도 있고 ...
+
+
+
+
+
+
+
+
+
+8개 카테고리  ->  고정  ->  8개 인덱스
+
+9개 브랜드    ->  데이터 손으로 넣고 그대로 깃서버로
+
+
+
+
+
+
+구현 1>  그냥 일배치(에서 실시간으로) 돌때 일단위 뷰하나 뽑아놨다가 , WAS 기동할때 서버 캐싱 들고있는걸로
+
+
+
+<서버> r테이블에서 min 들 컨켓 집계 서버컨텍스트에 박아놓고
+
+<화면> min 뽑는거니까 , 프런트 컨텍스트에 각 자리에 infinite 박아놓고 , 
+
+       아작스 두껀 보내
+
+           하나는 , 서버컨텍스트에 박아논거 받아오는거 , 매우큰 O(1)
+               오면 바로 프런트 컨텍스트에 각 자리 값들과 min 돌리고 바로 화면 뿌려
+
+           다른건 , cud테이블에서 실시간 min 들 컨켓 집계 뽑아오는거 , 그리크지않을 O(n?n^2?)
+               오면 바로 프런트 컨텍스트에 각 자리 값들과 min 돌리고 바로 화면 뿌려
+                   ->
+                   위랑 같은 펑션 그냥 똑같이 도는거고 , 최악의 경우는 화면 두번 드로잉하는 거긴 한데
+                   ->
+                   r테이블 데이터로 적중될 확률이 99% 이상일 것이라는 업무 규칙 가정이고
+                   ->
+                   백단 실시간 성능 나오게 구성했다는 가정이고 , 최악이더라도 사람이 거의 못느낄 시간차일것이라는 가정
+       ->
+       트랜잭션 기준 롤 , 화면이 갖는걸로 , 아래 구현 2/3 도 그렇게
+
+
+
+구현 2>  goods.total 1개 인덱스 -> 태워 최저가 브랜드 하나 뽑아오는거 -> 1건
+
+구현 3>  goods.cat_* 8개 인덱스  ( 자동으로 타든 using 을 쓰든 요청 카테고리명 타고 인덱스 탄다치고 )
+         ->
+         중에서 , 받은 카테고리 인덱스 하나 태워 , min/max 건만 뽑아오는거 -> 2건
+
+
+
+
+
+구현 4>  goods_insert/update/delete  ,,,  여기도 O(1?N?)  ...  배치니까 적당히 -> 시간 없으니까 그냥 단건 처리만
+
+
+
+
+Active
+Book
+
+
+
+
+putBrand({}) : {}
+
+getBrandList() : []
+getActiveBrandList() : []  # TOBE
+
+
+
+getExam1()             : {}
+getExam2()             : {}
+getExam3(categoryName) : {}
+
+getActiveExam1()             : {}  # TOBE
+getActiveExam2()             : {}  # TOBE
+getActiveExam3(categoryName) : {}  # TOBE
+
+
+
+setBrand({}) : {}  # 못해/안해 , 시간끝
+
+delBrand(id) : "success"/"fail"
+
+
+
+
+
+
+NN  to  NULL OK
+
+
+
+
+시간없는데 , 일을키웠나
+cud 분리 돌릴 시간되나 ...
+
+
+
+
+
+curl -X POST -H 'Content-Type: application/x-www-form-urlencoded' -F name=test -F total=36 -F cat1=1 -F cat2=2 -F cat3=3 -F cat4=4 -F cat5=5 -F cat6=6 -F cat7=7 -F cat8=8 -v http://localhost:8080/cody/putBrand
+
+curl -X POST -F name=test -F total=36 -F cat1=1 -F cat2=2 -F cat3=3 -F cat4=4 -F cat5=5 -F cat6=6 -F cat7=7 -F cat8=8 -v http://localhost:8080/cody/putBrand
+
+
+
+
+
+
+
+curl -X POST
+ -F name=A
+ -F total=37700
+ -F cat1=11200
+ -F cat2=5500
+ -F cat3=4200
+ -F cat4=9000
+ -F cat5=2000
+ -F cat6=1700
+ -F cat7=1800
+ -F cat8=2300
+ -v http://localhost:8080/cody/putBrand
+
+
+
+
+
+
+
+curl -X POST -F name=A -F total=37700 -F cat1=11200 -F cat2=5500 -F cat3=4200 -F cat4=9000 -F cat5=2000 -F cat6=1700 -F cat7=1800 -F cat8=2300 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=B -F total=37600 -F cat1=10500 -F cat2=5900 -F cat3=3800 -F cat4=9100 -F cat5=2100 -F cat6=2000 -F cat7=2000 -F cat8=2200 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=C -F total=37100 -F cat1=10000 -F cat2=6200 -F cat3=3300 -F cat4=9200 -F cat5=2200 -F cat6=1900 -F cat7=2200 -F cat8=2100 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=D -F total=36100 -F cat1=10100 -F cat2=5100 -F cat3=3000 -F cat4=9500 -F cat5=2500 -F cat6=1500 -F cat7=2400 -F cat8=2000 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=E -F total=37700 -F cat1=10700 -F cat2=5000 -F cat3=3800 -F cat4=9900 -F cat5=2300 -F cat6=1800 -F cat7=2100 -F cat8=2100 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=F -F total=39600 -F cat1=11200 -F cat2=7200 -F cat3=4000 -F cat4=9300 -F cat5=2100 -F cat6=1600 -F cat7=2300 -F cat8=1900 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=G -F total=37200 -F cat1=10500 -F cat2=5800 -F cat3=3900 -F cat4=9000 -F cat5=2200 -F cat6=1700 -F cat7=2100 -F cat8=2000 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=H -F total=37600 -F cat1=10800 -F cat2=6300 -F cat3=3100 -F cat4=9700 -F cat5=2100 -F cat6=1600 -F cat7=2000 -F cat8=2000 -v http://localhost:8080/cody/putBrand
+curl -X POST -F name=I -F total=39000 -F cat1=11400 -F cat2=6700 -F cat3=3200 -F cat4=9500 -F cat5=2400 -F cat6=1700 -F cat7=1700 -F cat8=2400 -v http://localhost:8080/cody/putBrand
+
+
+
+curl -X POST -F id=1 -v http://localhost:8080/cody/delBrand
+
+
+
+
+
+
+
+
+
+
+
+
+id    <PK>   # brand_id
+name  <UK?>  # brand_name
+
+total <IDX>  # brand_total
+
+cat1 <IDX>
+cat2 <IDX>
+cat3 <IDX>
+cat4 <IDX>
+cat5 <IDX>
+cat6 <IDX>
+cat7 <IDX>
+cat8 <IDX>
+
+
+
+
+
+
+GoodsCreateBookTable
+GoodsUpdateBookTable
+GoodsDeleteBookTable
+
+
+
+
+
+
+
+
+프로토타이핑 이니까 , 그냥 데이터/네이밍 통으로 전스택 바이패스  ( VO )
+->
+
+Create  ->  insert*  ( put )
+Select  ->  select*  ( get )
+Update  ->  update*  ( set )
+Delete  ->  delete*  ( del )
+
+
+
+
+select*
+select*List
+
+select*s
+
+selectAll*
+selectOne*
+
+
+
+
+
+
+
+
+
+<TODO> Goods**BookTable 전부 GoodsTable 베이스 + CUD 추가 메타들
+       ->
+       is-a 든 has-a 든 GoodsTable 베이스 그대로 가져오게
+
+
+
+
+<TODO> *s 복수형 단일 명칭 , 네이밍 쓰면 , 리스트 붙으면서 네이밍 꼬여
+
+
+
+
+
+name  <UK?>  # brand_name
+->
+납품이면 유니크 처리하고 , 백/프런트 리스트처리할거 단건 오브젝트 맵핑으로 코드주는데
+->
+내가 운영할 기준으로 가져가는거면 , all/one 기본 리스트로 가야하고 네이밍 잡아야되고 ...
+    ->
+    실세계에서 , 영원한 one 은 없는 ...
+->
+프로토타이핑 과제 제출이니까 , 체계가질려면 완전하게 갖고 , 안가질려면 완전하게 빼고
+    ->
+    <TODO> 크던/작던 , 일관성은 완전하게  ( 어설프게 쪼금 넣었다말았다는 이도저도 아니야 )
+           ->
+           나중에 고도화/리펙토링 가는데 힘들어져
+
+
+
+백/프런트 통으로 바이패스하는 풀스택 개발에서 쓸수있는 네이밍있고  ->  지금은 여기 !
+vs
+백/프런트 분리된                     개발에서 쓸수있는 네이밍있고  ->  여긴 all/one 처리 완전히 분리
+
+
+
+
+
+
+
+테스트 돌려볼 목업 인터페이스만 잡고 이렇게저렇게까진 할려했다 코멘트달고 제출 ...
+
+
+
+
+
+
+
+
+
+
+
+Candidate ( 전처리/후처리 ~ 예측/캐싱 ~ 구조화캐싱 ) + brands ( ? )
+
+
+
+
+
+<TODO> git remote add origin https://github.com/ninanoo/cody.git
+       git push -u origin master
+
+
+
+https://github.com/ninanoo/cody/tree/master
+
+
+
+
+Entity vs DTO  ( VO 는 그냥 ... )
+
+
+
+
+
+
+
+<TODO> 프런트는 , 프레임웤안쓴 쌩 HTML 수작업 웹앱으로 , 풀 데이터 패칭
+
+<TODO> 단위/통합 테스트  ,,,  통합 ?
+
+<TODO> 예외처리  ,,,  시간없으니까 , 그냥 기본은 적당히 넘어가고 , 생각못하는데 필요한 것 골라서
+
+
+
+
+
+
+
+
+
+
+
+
+
+A	11,200	5,500	4,200	9,000	2,000	1,700	1,800	2,300
+B	10,500	5,900	3,800	9,100	2,100	2,000	2,000	2,200
+C	10,000	6,200	3,300	9,200	2,200	1,900	2,200	2,100
+D	10,100	5,100	3,000	9,500	2,500	1,500	2,400	2,000
+E	10,700	5,000	3,800	9,900	2,300	1,800	2,100	2,100
+F	11,200	7,200	4,000	9,300	2,100	1,600	2,300	1,900
+G	10,500	5,800	3,900	9,000	2,200	1,700	2,100	2,000
+H	10,800	6,300	3,100	9,700	2,100	1,600	2,000	2,000
+I	11,400	6,700	3,200	9,500	2,400	1,700	1,700	2,400
+
+
+
+
+
+
+
+
+fetch("http://localhost:8080/cody/getBrandList", {
+  "headers": {
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "accept-language": "en,en-US;q=0.9,ko-KR;q=0.8,ko;q=0.7,en-GB;q=0.6",
+    "cache-control": "max-age=0",
+    "sec-ch-ua": "\"Google Chrome\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1"
+  },
+  "referrerPolicy": "strict-origin-when-cross-origin",
+  "body": null,
+  "method": "GET",
+  "mode": "cors",
+  "credentials": "omit"
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+크로스 플랫폼 모바일 앱 개발  >>>
+
+
+
+Flutter  ,,,  완성도(성숙도) 어느정도 올라왔는데 , 어쨌든 앱 전용 언어고
+
+<vs>
+
+KMM ( Kotlin Multiplatform )  ,,,  멀티되고 ( Kotlin/Native 컴파일 ) , 범용 언어 사용하고 ( API 백단이랑 )
+    ->
+    같은 언어 기반이면 -> 업무 로직 코드 모듈 백/프런트 간 부하/정책 타고 CSR/SSR
+    ->
+    이 솔루션(엔진)이 나왔나/안나왔나  ( nextjs 에 있나 ? )
+    ->
+    nodejs 에선 시도됬었지 , 백단 모듈/라이브러리 들을 프런
+    ->
+    KMM 싸이트에 "Share a piece of logic"  ...  런타임에 동작한다는건가 / 복사붙여넣기말하는건가
+
+
+
+
+
+빠른(비용작은) 개발 ( + 관리 효율 )  ->  Flutter
+
+<vs>
+
+고수준 개발  ->  KMM ?  ->  아직 한국 인력 시장에서 KMM 개발자 찾는건 보지못했어 ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+Junit , AssertJ , Mockito
+->
+Kotest , Mockk , Spek
+
+
+
+
+
+DSL ( Domain Specific Language )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
